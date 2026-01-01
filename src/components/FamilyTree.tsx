@@ -14,16 +14,18 @@ import { calculateLayout } from '../layout/engine';
 import type { LayoutResult } from '../layout/engine';
 import '../styles/theme.css';
 
-// Default spacing values
+// Default spacing values (must be >= NODE_WIDTH to prevent overlap)
 const DEFAULT_SPACING = {
-  generation: 120,
-  siblings: 60,
-  partners: 40,
+  generation: 150,
+  siblings: 140,   // NODE_WIDTH + 20px gap
+  partners: 130,   // NODE_WIDTH + 10px gap (partners closer together)
 };
 
 // Default node size (for foreignObject)
 const NODE_WIDTH = 120;
 const NODE_HEIGHT = 80;
+const NODE_PADDING = 4; // Padding inside foreignObject where card starts
+const CARD_CENTER_OFFSET = 18; // Approximate distance from foreignObject edge to card's visual center
 
 // Default zoom settings
 const DEFAULT_MIN_ZOOM = 0.1;
@@ -546,12 +548,31 @@ function FamilyTreeInner<T>(
               const p2 = layout.nodes.find((n) => n.id === conn.partner2Id);
               if (!p1 || !p2) return null;
 
+              // Offset line position to align with card's visual center based on orientation
+              let x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+              const edgeOffset = NODE_HEIGHT / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
+              const edgeOffsetH = NODE_WIDTH / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
+
+              if (orientation === 'top-down') {
+                y1 = p1.y - edgeOffset;
+                y2 = p2.y - edgeOffset;
+              } else if (orientation === 'bottom-up') {
+                y1 = p1.y + edgeOffset;
+                y2 = p2.y + edgeOffset;
+              } else if (orientation === 'left-right') {
+                x1 = p1.x - edgeOffsetH;
+                x2 = p2.x - edgeOffsetH;
+              } else if (orientation === 'right-left') {
+                x1 = p1.x + edgeOffsetH;
+                x2 = p2.x + edgeOffsetH;
+              }
+
               return (
                 <motion.line
                   key={`partnership-${conn.partnershipId}`}
                   className="ft-partnership-line"
                   initial={false}
-                  animate={{ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }}
+                  animate={{ x1, y1, x2, y2 }}
                   transition={{ duration, ease: 'easeInOut' }}
                   stroke={lineStroke}
                   strokeWidth={lineStrokeWidth}
@@ -570,8 +591,22 @@ function FamilyTreeInner<T>(
               );
               if (!partnership) return null;
 
-              const midX = partnership.midpoint.x;
-              const midY = partnership.midpoint.y;
+              // Adjust midpoint to match the offset partnership line
+              let midX = partnership.midpoint.x;
+              let midY = partnership.midpoint.y;
+              const edgeOffset = NODE_HEIGHT / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
+              const edgeOffsetH = NODE_WIDTH / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
+
+              if (orientation === 'top-down') {
+                midY = midY - edgeOffset;
+              } else if (orientation === 'bottom-up') {
+                midY = midY + edgeOffset;
+              } else if (orientation === 'left-right') {
+                midX = midX - edgeOffsetH;
+              } else if (orientation === 'right-left') {
+                midX = midX + edgeOffsetH;
+              }
+
               const childX = conn.childPoint.x;
               const childY = conn.childPoint.y;
               const dropX = conn.dropPoint.x;
@@ -583,7 +618,10 @@ function FamilyTreeInner<T>(
 
               if (isHorizontal) {
                 // Horizontal layouts: drop line goes horizontal first, then vertical
-                const nodeOffset = orientation === 'left-right' ? -NODE_WIDTH / 2 : NODE_WIDTH / 2;
+                // Account for padding inside the node where the card starts
+                const nodeOffset = orientation === 'left-right'
+                  ? -NODE_WIDTH / 2 + NODE_PADDING
+                  : NODE_WIDTH / 2 - NODE_PADDING;
                 path = `
                   M ${midX} ${midY}
                   L ${dropX} ${midY}
@@ -592,7 +630,10 @@ function FamilyTreeInner<T>(
                 `;
               } else {
                 // Vertical layouts: drop line goes vertical first, then horizontal
-                const nodeOffset = orientation === 'top-down' ? -NODE_HEIGHT / 2 : NODE_HEIGHT / 2;
+                // Account for padding inside the node where the card starts
+                const nodeOffset = orientation === 'top-down'
+                  ? -NODE_HEIGHT / 2 + NODE_PADDING
+                  : NODE_HEIGHT / 2 - NODE_PADDING;
                 path = `
                   M ${midX} ${midY}
                   L ${midX} ${dropY}
@@ -684,8 +725,17 @@ function FamilyTreeInner<T>(
                         width: '100%',
                         height: '100%',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        // Align card based on orientation so lines connect properly
+                        alignItems: orientation === 'top-down' ? 'flex-start'
+                          : orientation === 'bottom-up' ? 'flex-end'
+                          : 'center',
+                        justifyContent: orientation === 'left-right' ? 'flex-start'
+                          : orientation === 'right-left' ? 'flex-end'
+                          : 'center',
+                        paddingTop: orientation === 'top-down' ? NODE_PADDING : 0,
+                        paddingBottom: orientation === 'bottom-up' ? NODE_PADDING : 0,
+                        paddingLeft: orientation === 'left-right' ? NODE_PADDING : 0,
+                        paddingRight: orientation === 'right-left' ? NODE_PADDING : 0,
                       }}
                     >
                       <NodeComponent {...nodeProps} />
