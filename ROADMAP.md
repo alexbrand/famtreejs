@@ -43,33 +43,33 @@ Implementation plan for `@yourorg/family-tree` organized into 5 phases.
 
 > Fully navigable tree
 
-- [ ] **Pan & Zoom**
-  - [ ] Implement drag-to-pan on SVG container
-  - [ ] Implement scroll-wheel zoom
-  - [ ] Implement pinch-to-zoom (touch devices)
-  - [ ] Add `minZoom` / `maxZoom` props
-  - [ ] Add `initialZoom` prop
+- [x] **Pan & Zoom**
+  - [x] Implement drag-to-pan on SVG container
+  - [x] Implement scroll-wheel zoom
+  - [x] Implement pinch-to-zoom (touch devices)
+  - [x] Add `minZoom` / `maxZoom` props
+  - [x] Add `initialZoom` prop
 
-- [ ] **Node Interactions**
-  - [ ] Track hover state, pass `isHovered` to `nodeComponent`
-  - [ ] Track selected state, pass `isSelected` to `nodeComponent`
-  - [ ] Implement `onPersonClick` callback
-  - [ ] Implement `onPersonHover` callback
-  - [ ] Implement `onPartnershipClick` callback
+- [x] **Node Interactions**
+  - [x] Track hover state, pass `isHovered` to `nodeComponent`
+  - [x] Track selected state, pass `isSelected` to `nodeComponent`
+  - [x] Implement `onPersonClick` callback
+  - [x] Implement `onPersonHover` callback
+  - [x] Implement `onPartnershipClick` callback
 
-- [ ] **Expand/Collapse**
-  - [ ] Track expanded/collapsed state per branch
-  - [ ] Pass `isExpanded` and `onToggleExpand` to `nodeComponent`
-  - [ ] Hide/show descendants based on state
-  - [ ] Update layout when branches toggle
+- [x] **Expand/Collapse**
+  - [x] Track expanded/collapsed state per branch
+  - [x] Pass `isExpanded` and `onToggleExpand` to `nodeComponent`
+  - [x] Hide/show descendants based on state
+  - [x] Update layout when branches toggle
 
-- [ ] **Re-rooting**
-  - [ ] Implement `rootPersonId` prop
-  - [ ] Implement `ancestorDepth` / `descendantDepth` props
-  - [ ] Recalculate visible nodes when root changes
-  - [ ] Implement `onRootChange` callback
+- [x] **Re-rooting**
+  - [x] Implement `rootPersonId` prop
+  - [x] Implement `ancestorDepth` / `descendantDepth` props
+  - [x] Recalculate visible nodes when root changes
+  - [x] Implement `onRootChange` callback
 
-**Phase 2 Complete:** [ ]
+**Phase 2 Complete:** [x]
 
 ---
 
@@ -202,7 +202,7 @@ Implementation plan for `@yourorg/family-tree` organized into 5 phases.
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 1 | Foundation | [x] |
-| 2 | Interactivity | [ ] |
+| 2 | Interactivity | [x] |
 | 3 | API & State | [ ] |
 | 4 | Polish | [ ] |
 | 5 | Release | [ ] |
