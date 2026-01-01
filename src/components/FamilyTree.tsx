@@ -7,10 +7,12 @@ import {
   useRef,
   useEffect,
 } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { FamilyTreeProps, FamilyTreeHandle, NodeComponentProps } from '../types';
 import { validateFamilyTreeData } from '../utils/validation';
 import { calculateLayout } from '../layout/engine';
 import type { LayoutResult } from '../layout/engine';
+import '../styles/theme.css';
 
 // Default spacing values
 const DEFAULT_SPACING = {
@@ -53,12 +55,19 @@ function FamilyTreeInner<T>(
     initialZoom = 1,
     minZoom = DEFAULT_MIN_ZOOM,
     maxZoom = DEFAULT_MAX_ZOOM,
+    disableAnimations = false,
+    animationDuration = 300,
     onPersonClick,
     onPersonHover,
     onPartnershipClick,
     onZoomChange,
     onRootChange,
   } = props;
+
+  // Respect prefers-reduced-motion
+  const prefersReducedMotion = useReducedMotion();
+  const shouldAnimate = !disableAnimations && !prefersReducedMotion;
+  const duration = shouldAnimate ? animationDuration / 1000 : 0;
 
   // Merge spacing with defaults
   const spacing = useMemo(
@@ -69,6 +78,7 @@ function FamilyTreeInner<T>(
   // State
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
   const [transform, setTransform] = useState<Transform>({
     x: 0,
@@ -88,8 +98,8 @@ function FamilyTreeInner<T>(
 
   // Calculate layout
   const layout: LayoutResult = useMemo(() => {
-    return calculateLayout(data, { spacing });
-  }, [data, spacing]);
+    return calculateLayout(data, { spacing, orientation });
+  }, [data, spacing, orientation]);
 
   // Calculate content bounds
   const bounds = useMemo(() => {
@@ -229,11 +239,11 @@ function FamilyTreeInner<T>(
     getRoot: () => null,
   }));
 
-  // Initialize view centered on content
+  // Initialize view centered on content, and re-fit when orientation changes
   useEffect(() => {
     fitToView();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [orientation]);
 
   // Mouse event handlers for pan
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -394,8 +404,102 @@ function FamilyTreeInner<T>(
     [onPartnershipClick]
   );
 
-  // Line styling
-  const lineStroke = lineStyle?.stroke ?? (theme === 'dark' ? '#666' : '#333');
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const nodeIds = layout.nodes.map((n) => n.id);
+      const currentIndex = focusedId ? nodeIds.indexOf(focusedId) : -1;
+
+      switch (e.key) {
+        case 'Tab':
+          // Let default tab behavior work, but track focus
+          break;
+
+        case 'ArrowDown':
+        case 'ArrowRight': {
+          e.preventDefault();
+          const nextIndex = currentIndex < nodeIds.length - 1 ? currentIndex + 1 : 0;
+          setFocusedId(nodeIds[nextIndex]);
+          break;
+        }
+
+        case 'ArrowUp':
+        case 'ArrowLeft': {
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 ? currentIndex - 1 : nodeIds.length - 1;
+          setFocusedId(nodeIds[prevIndex]);
+          break;
+        }
+
+        case 'Enter':
+        case ' ': {
+          e.preventDefault();
+          if (focusedId) {
+            setSelectedId(focusedId);
+            const person = data.people.find((p) => p.id === focusedId);
+            if (person && onPersonClick) {
+              onPersonClick(focusedId, person.data);
+            }
+          }
+          break;
+        }
+
+        case 'e':
+        case 'E': {
+          // Toggle expand on focused node
+          if (focusedId) {
+            toggleBranch(focusedId);
+          }
+          break;
+        }
+
+        case '+':
+        case '=': {
+          e.preventDefault();
+          zoomIn();
+          break;
+        }
+
+        case '-':
+        case '_': {
+          e.preventDefault();
+          zoomOut();
+          break;
+        }
+
+        case '0': {
+          e.preventDefault();
+          fitToView();
+          break;
+        }
+
+        case 'Home': {
+          e.preventDefault();
+          if (nodeIds.length > 0) {
+            setFocusedId(nodeIds[0]);
+          }
+          break;
+        }
+
+        case 'End': {
+          e.preventDefault();
+          if (nodeIds.length > 0) {
+            setFocusedId(nodeIds[nodeIds.length - 1]);
+          }
+          break;
+        }
+      }
+    },
+    [layout.nodes, focusedId, data.people, onPersonClick, toggleBranch, zoomIn, zoomOut, fitToView]
+  );
+
+  // Handle focus on node
+  const handleNodeFocus = useCallback((personId: string) => {
+    setFocusedId(personId);
+  }, []);
+
+  // Line styling - use CSS variables, with props as override
+  const lineStroke = lineStyle?.stroke ?? 'var(--ft-line-color)';
   const lineStrokeWidth = lineStyle?.strokeWidth ?? 2;
 
   return (
@@ -408,8 +512,12 @@ function FamilyTreeInner<T>(
         overflow: 'hidden',
         cursor: isDragging.current ? 'grabbing' : 'grab',
         touchAction: 'none',
+        outline: 'none',
         ...style,
       }}
+      tabIndex={0}
+      role="application"
+      aria-label="Family tree diagram. Use arrow keys to navigate, Enter to select, +/- to zoom."
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -418,6 +526,7 @@ function FamilyTreeInner<T>(
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onKeyDown={handleKeyDown}
     >
       <svg
         ref={svgRef}
@@ -438,13 +547,12 @@ function FamilyTreeInner<T>(
               if (!p1 || !p2) return null;
 
               return (
-                <line
+                <motion.line
                   key={`partnership-${conn.partnershipId}`}
                   className="ft-partnership-line"
-                  x1={p1.x}
-                  y1={p1.y}
-                  x2={p2.x}
-                  y2={p2.y}
+                  initial={false}
+                  animate={{ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }}
+                  transition={{ duration, ease: 'easeInOut' }}
                   stroke={lineStroke}
                   strokeWidth={lineStrokeWidth}
                   onClick={(e) => handlePartnershipClick(e, conn.partnershipId)}
@@ -466,20 +574,40 @@ function FamilyTreeInner<T>(
               const midY = partnership.midpoint.y;
               const childX = conn.childPoint.x;
               const childY = conn.childPoint.y;
+              const dropX = conn.dropPoint.x;
               const dropY = conn.dropPoint.y;
 
-              const path = `
-                M ${midX} ${midY}
-                L ${midX} ${dropY}
-                L ${childX} ${dropY}
-                L ${childX} ${childY - NODE_HEIGHT / 2}
-              `;
+              // Calculate path based on orientation
+              let path: string;
+              const isHorizontal = orientation === 'left-right' || orientation === 'right-left';
+
+              if (isHorizontal) {
+                // Horizontal layouts: drop line goes horizontal first, then vertical
+                const nodeOffset = orientation === 'left-right' ? -NODE_WIDTH / 2 : NODE_WIDTH / 2;
+                path = `
+                  M ${midX} ${midY}
+                  L ${dropX} ${midY}
+                  L ${dropX} ${childY}
+                  L ${childX + nodeOffset} ${childY}
+                `;
+              } else {
+                // Vertical layouts: drop line goes vertical first, then horizontal
+                const nodeOffset = orientation === 'top-down' ? -NODE_HEIGHT / 2 : NODE_HEIGHT / 2;
+                path = `
+                  M ${midX} ${midY}
+                  L ${midX} ${dropY}
+                  L ${childX} ${dropY}
+                  L ${childX} ${childY + nodeOffset}
+                `;
+              }
 
               return (
-                <path
+                <motion.path
                   key={`child-${conn.partnershipId}-${conn.childId}`}
                   className="ft-child-line"
-                  d={path}
+                  initial={false}
+                  animate={{ d: path }}
+                  transition={{ duration, ease: 'easeInOut' }}
                   fill="none"
                   stroke={lineStroke}
                   strokeWidth={lineStrokeWidth}
@@ -489,45 +617,81 @@ function FamilyTreeInner<T>(
           </g>
 
           {/* Nodes */}
-          <g className="ft-nodes">
-            {layout.nodes.map((node) => {
+          <g className="ft-nodes" role="tree" aria-label="Family members">
+            {layout.nodes.map((node, index) => {
               const person = data.people.find((p) => p.id === node.id);
               if (!person) return null;
+
+              const isFocused = focusedId === node.id;
+              const isSelected = selectedId === node.id;
+              const isExpanded = expandedIds.has(node.id);
 
               const nodeProps: NodeComponentProps<T> = {
                 id: node.id,
                 data: person.data,
-                isSelected: selectedId === node.id,
+                isSelected,
                 isHovered: hoveredId === node.id,
-                isExpanded: expandedIds.has(node.id),
+                isExpanded,
                 onToggleExpand: () => toggleBranch(node.id),
               };
 
+              // Get label from data if it has a name property
+              const personData = person.data as { name?: string };
+              const ariaLabel = personData?.name || `Person ${node.id}`;
+
               return (
-                <foreignObject
+                <motion.g
                   key={node.id}
-                  x={node.x - NODE_WIDTH / 2}
-                  y={node.y - NODE_HEIGHT / 2}
-                  width={NODE_WIDTH}
-                  height={NODE_HEIGHT}
-                  className="ft-node"
-                  onClick={(e) => handleNodeClick(e, node.id)}
-                  onMouseEnter={() => handleNodeHover(node.id)}
-                  onMouseLeave={() => handleNodeHover(null)}
-                  style={{ cursor: 'pointer' }}
+                  initial={false}
+                  animate={{ x: node.x - NODE_WIDTH / 2, y: node.y - NODE_HEIGHT / 2 }}
+                  transition={{ duration, ease: 'easeInOut' }}
+                  role="treeitem"
+                  aria-label={ariaLabel}
+                  aria-selected={isSelected}
+                  aria-expanded={isExpanded}
+                  aria-setsize={layout.nodes.length}
+                  aria-posinset={index + 1}
+                  tabIndex={isFocused ? 0 : -1}
+                  onFocus={() => handleNodeFocus(node.id)}
                 >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                  {/* Focus ring */}
+                  {isFocused && (
+                    <rect
+                      x={-4}
+                      y={-4}
+                      width={NODE_WIDTH + 8}
+                      height={NODE_HEIGHT + 8}
+                      fill="none"
+                      stroke="var(--ft-node-selected-border)"
+                      strokeWidth={3}
+                      rx={12}
+                      style={{ pointerEvents: 'none' }}
+                    />
+                  )}
+                  <foreignObject
+                    x={0}
+                    y={0}
+                    width={NODE_WIDTH}
+                    height={NODE_HEIGHT}
+                    className="ft-node"
+                    onClick={(e) => handleNodeClick(e, node.id)}
+                    onMouseEnter={() => handleNodeHover(node.id)}
+                    onMouseLeave={() => handleNodeHover(null)}
+                    style={{ cursor: 'pointer', overflow: 'visible' }}
                   >
-                    <NodeComponent {...nodeProps} />
-                  </div>
-                </foreignObject>
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <NodeComponent {...nodeProps} />
+                    </div>
+                  </foreignObject>
+                </motion.g>
               );
             })}
           </g>

@@ -19,7 +19,7 @@ export function FamilyTreeProvider({
   minZoom = 0.1,
   maxZoom = 3,
 }: FamilyTreeProviderProps) {
-  const storeRef = useRef<ReturnType<typeof createTreeStore>>();
+  const storeRef = useRef<ReturnType<typeof createTreeStore> | null>(null);
 
   if (!storeRef.current) {
     storeRef.current = createTreeStore(minZoom, maxZoom);

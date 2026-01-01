@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { FamilyTree } from '../src/components/FamilyTree';
 import { BasicPersonCard } from '../src/components/defaults/BasicPersonCard';
-import type { FamilyTreeData } from '../src/types';
+import type { FamilyTreeData, Orientation, Theme } from '../src/types';
 
 // Sample data: A multi-generational family tree
 const sampleData: FamilyTreeData<{ name: string }> = {
@@ -28,14 +29,72 @@ const sampleData: FamilyTreeData<{ name: string }> = {
   ],
 };
 
+const orientations: Orientation[] = ['top-down', 'bottom-up', 'left-right', 'right-left'];
+const themes: Theme[] = ['light', 'dark'];
+
 function App() {
+  const [orientation, setOrientation] = useState<Orientation>('top-down');
+  const [theme, setTheme] = useState<Theme>('light');
+
   return (
-    <div style={{ width: '100vw', height: '100vh', padding: '20px', boxSizing: 'border-box' }}>
-      <h1 style={{ margin: '0 0 20px', fontFamily: 'system-ui' }}>Family Tree Demo</h1>
-      <div style={{ width: '100%', height: 'calc(100% - 60px)', border: '1px solid #ddd', borderRadius: '8px' }}>
+    <div
+      style={{
+        width: '100vw',
+        height: '100vh',
+        padding: '20px',
+        boxSizing: 'border-box',
+        background: theme === 'dark' ? '#1a1a1a' : '#fff',
+        color: theme === 'dark' ? '#fff' : '#000',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
+        <h1 style={{ margin: 0, fontFamily: 'system-ui' }}>Family Tree Demo</h1>
+
+        <label style={{ fontFamily: 'system-ui' }}>
+          Orientation:{' '}
+          <select
+            value={orientation}
+            onChange={(e) => setOrientation(e.target.value as Orientation)}
+            style={{ padding: '4px 8px' }}
+          >
+            {orientations.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label style={{ fontFamily: 'system-ui' }}>
+          Theme:{' '}
+          <select
+            value={theme}
+            onChange={(e) => setTheme(e.target.value as Theme)}
+            style={{ padding: '4px 8px' }}
+          >
+            {themes.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div
+        style={{
+          width: '100%',
+          height: 'calc(100% - 60px)',
+          border: theme === 'dark' ? '1px solid #444' : '1px solid #ddd',
+          borderRadius: '8px',
+          background: theme === 'dark' ? '#2a2a2a' : '#fff',
+        }}
+      >
         <FamilyTree
           data={sampleData}
           nodeComponent={BasicPersonCard}
+          orientation={orientation}
+          theme={theme}
           onPersonClick={(id, data) => console.log('Clicked:', id, data)}
           onPersonHover={(id, data) => console.log('Hover:', id, data)}
         />

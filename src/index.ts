@@ -18,6 +18,7 @@ export { FamilyTreeProvider } from './store/FamilyTreeContext';
 
 // Default components
 export { BasicPersonCard } from './components/defaults/BasicPersonCard';
+export { DetailedPersonCard } from './components/defaults/DetailedPersonCard';
 
 // Types
 export type {

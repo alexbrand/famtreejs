@@ -3,3 +3,13 @@ dist/
 *.log
 .DS_Store
 coverage/
+
+*storybook.log
+storybook-static
+
+# TypeScript build artifacts (outside dist)
+*.d.ts
+*.d.ts.map
+*.js.map
+/dev/*.js
+/vite.config.js

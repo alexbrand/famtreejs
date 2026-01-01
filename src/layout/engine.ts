@@ -39,6 +39,8 @@ export interface LayoutResult {
   nodes: LayoutNode[];
   partnershipConnections: PartnershipConnection[];
   childConnections: ChildConnection[];
+  /** The orientation used for this layout */
+  orientation: Orientation;
 }
 
 /**
@@ -57,6 +59,60 @@ const DEFAULT_SPACING: Required<SpacingConfig> = {
 };
 
 /**
+ * Transform a point based on orientation
+ * Top-down is the canonical orientation, others are transforms of it
+ */
+function transformPoint(
+  point: { x: number; y: number },
+  orientation: Orientation
+): { x: number; y: number } {
+  switch (orientation) {
+    case 'top-down':
+      return point;
+    case 'bottom-up':
+      // Flip y-axis (negate y so root is at bottom)
+      return { x: point.x, y: -point.y };
+    case 'left-right':
+      // Swap x and y (root on left, descendants to right)
+      return { x: point.y, y: point.x };
+    case 'right-left':
+      // Swap x and y, negate x (root on right, descendants to left)
+      return { x: -point.y, y: point.x };
+    default:
+      return point;
+  }
+}
+
+/**
+ * Apply orientation transform to the entire layout result
+ */
+function transformLayout(
+  result: Omit<LayoutResult, 'orientation'>,
+  orientation: Orientation
+): LayoutResult {
+  if (orientation === 'top-down') {
+    return { ...result, orientation };
+  }
+
+  return {
+    nodes: result.nodes.map((node) => ({
+      ...node,
+      ...transformPoint(node, orientation),
+    })),
+    partnershipConnections: result.partnershipConnections.map((conn) => ({
+      ...conn,
+      midpoint: transformPoint(conn.midpoint, orientation),
+    })),
+    childConnections: result.childConnections.map((conn) => ({
+      ...conn,
+      dropPoint: transformPoint(conn.dropPoint, orientation),
+      childPoint: transformPoint(conn.childPoint, orientation),
+    })),
+    orientation,
+  };
+}
+
+/**
  * Calculate the layout for a family tree
  */
 export function calculateLayout<T>(
@@ -64,6 +120,7 @@ export function calculateLayout<T>(
   options: LayoutOptions
 ): LayoutResult {
   const spacing = { ...DEFAULT_SPACING, ...options.spacing };
+  const orientation = options.orientation || 'top-down';
 
   // Build helper maps
   const childToPartnershipMap = buildChildToPartnershipMap(data);
@@ -107,7 +164,8 @@ export function calculateLayout<T>(
     return { id: person.id, x: pos.x, y: pos.y };
   });
 
-  return { nodes, partnershipConnections, childConnections };
+  // Apply orientation transform
+  return transformLayout({ nodes, partnershipConnections, childConnections }, orientation);
 }
 
 /**
