@@ -334,18 +334,7 @@ function layoutFamilyUnit<T>(
         const childId = children[i];
         const childWidth = childWidths[i];
 
-        // Center child within its subtree width
-        const childCenterX = childX + childWidth / 2;
-
-        // Add child connection
-        childConnections.push({
-          partnershipId: partnership.id,
-          childId,
-          dropPoint: { x: midpointX, y: y + spacing.generation / 2 },
-          childPoint: { x: childCenterX, y: childY },
-        });
-
-        // Recursively layout child's family
+        // Recursively layout child's family first to get actual node position
         layoutFamilyUnit(
           childId,
           childX,
@@ -359,6 +348,18 @@ function layoutFamilyUnit<T>(
           processedPeople,
           childToPartnershipMap
         );
+
+        // Get the actual node position after layout (connects to the person, not their partnership)
+        const actualChildPos = nodePositions.get(childId);
+        const childNodeX = actualChildPos ? actualChildPos.x : childX + childWidth / 2;
+
+        // Add child connection using actual node position
+        childConnections.push({
+          partnershipId: partnership.id,
+          childId,
+          dropPoint: { x: midpointX, y: y + spacing.generation / 2 },
+          childPoint: { x: childNodeX, y: childY },
+        });
 
         childX += childWidth + spacing.siblings;
       }
