@@ -23,6 +23,8 @@ Read these files before implementing any features.
 - **Test-driven development**: Write tests before implementation. Run tests frequently.
 - **TypeScript strict mode**: No `any` types. Define interfaces for all data structures.
 - **Incremental commits**: Commit working code at each logical checkpoint.
+- **Conventional commits**: Use format `type: short description` (e.g., `feat: add pan/zoom`, `fix: circular ref detection`, `test: layout engine`).
+- **Prefer CLIs for scaffolding**: Use tools like `npm init`, `npx storybook init`, etc. rather than manually generating config files.
 
 ### Visual Verification
 When implementing or modifying visual features (layout, rendering, styling, animations):
