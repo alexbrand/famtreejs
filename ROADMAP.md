@@ -77,34 +77,34 @@ Implementation plan for `@yourorg/family-tree` organized into 5 phases.
 
 > Programmatically controllable tree
 
-- [ ] **State Management**
-  - [ ] Set up Zustand store for tree state
-  - [ ] Store: zoom level, root person, selected node, expanded branches
-  - [ ] Ensure React components subscribe to relevant slices
+- [x] **State Management**
+  - [x] Set up Zustand store for tree state
+  - [x] Store: zoom level, root person, selected node, expanded branches
+  - [x] Ensure React components subscribe to relevant slices
 
-- [ ] **Ref API**
-  - [ ] Define `FamilyTreeHandle` interface
-  - [ ] Implement `zoomTo(level)`
-  - [ ] Implement `zoomIn()` / `zoomOut()`
-  - [ ] Implement `centerOnPerson(id)`
-  - [ ] Implement `fitToView()`
-  - [ ] Implement `expandAll()` / `collapseAll()`
-  - [ ] Implement `toggleBranch(id)`
-  - [ ] Implement `setRoot(id)`
-  - [ ] Implement `getZoom()` / `getRoot()`
-  - [ ] Expose via `React.forwardRef`
+- [x] **Ref API**
+  - [x] Define `FamilyTreeHandle` interface
+  - [x] Implement `zoomTo(level)`
+  - [x] Implement `zoomIn()` / `zoomOut()`
+  - [x] Implement `centerOnPerson(id)`
+  - [x] Implement `fitToView()`
+  - [x] Implement `expandAll()` / `collapseAll()`
+  - [x] Implement `toggleBranch(id)`
+  - [x] Implement `setRoot(id)`
+  - [x] Implement `getZoom()` / `getRoot()`
+  - [x] Expose via `React.forwardRef`
 
-- [ ] **Hooks**
-  - [ ] Implement `useFamilyTreeState()` hook
-  - [ ] Implement `useFamilyTreeActions()` hook
-  - [ ] Create context provider for hooks
-  - [ ] Document that hooks must be used within `<FamilyTree>`
+- [x] **Hooks**
+  - [x] Implement `useFamilyTreeState()` hook
+  - [x] Implement `useFamilyTreeActions()` hook
+  - [x] Create context provider for hooks
+  - [x] Document that hooks must be used within `<FamilyTree>`
 
-- [ ] **Callbacks**
-  - [ ] Implement `onZoomChange` callback
-  - [ ] Ensure all callbacks are stable (memoized)
+- [x] **Callbacks**
+  - [x] Implement `onZoomChange` callback
+  - [x] Ensure all callbacks are stable (memoized)
 
-**Phase 3 Complete:** [ ]
+**Phase 3 Complete:** [x]
 
 ---
 
@@ -203,7 +203,7 @@ Implementation plan for `@yourorg/family-tree` organized into 5 phases.
 |-------|-------------|--------|
 | 1 | Foundation | [x] |
 | 2 | Interactivity | [x] |
-| 3 | API & State | [ ] |
+| 3 | API & State | [x] |
 | 4 | Polish | [ ] |
 | 5 | Release | [ ] |
 
