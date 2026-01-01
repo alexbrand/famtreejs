@@ -8,34 +8,34 @@ Implementation plan for `@yourorg/family-tree` organized into 5 phases.
 
 > Renders a static tree from data, no interactivity
 
-- [ ] **Project Setup**
-  - [ ] Initialize npm package with TypeScript
-  - [ ] Configure ESM-only build (Vite or Rollup)
-  - [ ] Install dependencies (React 18, D3, Zustand, Framer Motion)
-  - [ ] Set up linting (ESLint) and formatting (Prettier)
-  - [ ] Configure testing framework (Vitest)
+- [x] **Project Setup**
+  - [x] Initialize npm package with TypeScript
+  - [x] Configure ESM-only build (Vite or Rollup)
+  - [x] Install dependencies (React 18, D3, Zustand, Framer Motion)
+  - [x] Set up linting (ESLint) and formatting (Prettier)
+  - [x] Configure testing framework (Vitest)
 
-- [ ] **Data Layer**
-  - [ ] Define TypeScript interfaces (`PersonNode<T>`, `Partnership`, `FamilyTreeData<T>`)
-  - [ ] Implement data validation (missing IDs, circular refs, duplicates)
-  - [ ] Write unit tests for validation logic
+- [x] **Data Layer**
+  - [x] Define TypeScript interfaces (`PersonNode<T>`, `Partnership`, `FamilyTreeData<T>`)
+  - [x] Implement data validation (missing IDs, circular refs, duplicates)
+  - [x] Write unit tests for validation logic
 
-- [ ] **Layout Engine**
-  - [ ] Implement D3-based layout algorithm for top-down orientation
-  - [ ] Handle partnership positioning (partners side-by-side)
-  - [ ] Calculate child drop-line positions (vertical line from partnership center)
-  - [ ] Handle single-parent edge case
-  - [ ] Write unit tests for layout calculations
+- [x] **Layout Engine**
+  - [x] Implement D3-based layout algorithm for top-down orientation
+  - [x] Handle partnership positioning (partners side-by-side)
+  - [x] Calculate child drop-line positions (vertical line from partnership center)
+  - [x] Handle single-parent edge case
+  - [x] Write unit tests for layout calculations
 
-- [ ] **Basic Rendering**
-  - [ ] Create `<FamilyTree>` component shell
-  - [ ] Render SVG container with viewBox
-  - [ ] Render partnership lines (horizontal between partners)
-  - [ ] Render child connection lines (vertical drop + horizontal branches)
-  - [ ] Render nodes via `<foreignObject>` with user's `nodeComponent`
-  - [ ] Basic props: `data`, `nodeComponent`
+- [x] **Basic Rendering**
+  - [x] Create `<FamilyTree>` component shell
+  - [x] Render SVG container with viewBox
+  - [x] Render partnership lines (horizontal between partners)
+  - [x] Render child connection lines (vertical drop + horizontal branches)
+  - [x] Render nodes via `<foreignObject>` with user's `nodeComponent`
+  - [x] Basic props: `data`, `nodeComponent`
 
-**Phase 1 Complete:** [ ]
+**Phase 1 Complete:** [x]
 
 ---
 
@@ -201,7 +201,7 @@ Implementation plan for `@yourorg/family-tree` organized into 5 phases.
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 1 | Foundation | [ ] |
+| 1 | Foundation | [x] |
 | 2 | Interactivity | [ ] |
 | 3 | API & State | [ ] |
 | 4 | Polish | [ ] |
