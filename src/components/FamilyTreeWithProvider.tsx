@@ -1,6 +1,6 @@
 import { forwardRef, useRef, useEffect } from 'react';
 import { FamilyTree } from './FamilyTree';
-import { FamilyTreeProvider, useTreeStoreInternal } from '../store/FamilyTreeContext';
+import { FamilyTreeProvider, useTreeStoreRaw } from '../store/FamilyTreeContext';
 import type { FamilyTreeProps, FamilyTreeHandle } from '../types';
 
 /**
@@ -11,20 +11,22 @@ function FamilyTreeBridge<T>({
   ...props
 }: FamilyTreeProps<T> & { innerRef: React.ForwardedRef<FamilyTreeHandle> }) {
   const localRef = useRef<FamilyTreeHandle>(null);
-  const store = useTreeStoreInternal();
+  // Use raw store reference to avoid subscribing to state changes
+  // This prevents infinite loops when _registerCallbacks updates state
+  const storeApi = useTreeStoreRaw();
 
   // Register callbacks when component mounts
   useEffect(() => {
     if (localRef.current) {
-      store._registerCallbacks(
+      storeApi.getState()._registerCallbacks(
         localRef.current.centerOnPerson,
         localRef.current.fitToView
       );
     }
     return () => {
-      store._unregisterCallbacks();
+      storeApi.getState()._unregisterCallbacks();
     };
-  }, [store]);
+  }, [storeApi]);
 
   // Forward the ref to both local and external
   const setRefs = (handle: FamilyTreeHandle | null) => {

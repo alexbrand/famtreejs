@@ -120,4 +120,12 @@ export function useTreeStoreInternal() {
   return useStore(store);
 }
 
+/**
+ * Internal hook to get the raw store reference (for callback registration)
+ * This avoids subscribing to state changes, preventing infinite loops
+ */
+export function useTreeStoreRaw() {
+  return useTreeStoreContext();
+}
+
 export { FamilyTreeContext };

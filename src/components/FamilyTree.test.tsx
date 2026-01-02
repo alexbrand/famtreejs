@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, act } from '@testing-library/react';
 import { FamilyTree } from './FamilyTree';
+import { FamilyTreeWithProvider } from './FamilyTreeWithProvider';
 import type { FamilyTreeData, NodeComponentProps, Orientation } from '../types';
 import { useState } from 'react';
 
@@ -282,6 +283,58 @@ describe('FamilyTree', () => {
 
       // onZoomChange should not be called on re-render with same data
       expect(onZoomChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('FamilyTreeWithProvider', () => {
+    it('renders without causing infinite loops', async () => {
+      const renderCount = { current: 0 };
+
+      function CountingNode({ data }: NodeComponentProps<{ name: string }>) {
+        renderCount.current++;
+        return <div>{data.name}</div>;
+      }
+
+      // This should NOT throw "Maximum update depth exceeded"
+      expect(() => {
+        render(
+          <FamilyTreeWithProvider data={sampleData} nodeComponent={CountingNode} />
+        );
+      }).not.toThrow();
+
+      // Wait for effects to settle
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      // Should have reasonable render count (not hundreds from infinite loop)
+      expect(renderCount.current).toBeLessThan(30);
+    });
+
+    it('handles multiple re-renders without infinite loop', async () => {
+      const { rerender } = render(
+        <FamilyTreeWithProvider data={sampleData} nodeComponent={TestNode} />
+      );
+
+      // Multiple re-renders should NOT cause infinite loop
+      expect(() => {
+        act(() => {
+          rerender(
+            <FamilyTreeWithProvider data={sampleData} nodeComponent={TestNode} />
+          );
+          rerender(
+            <FamilyTreeWithProvider data={sampleData} nodeComponent={TestNode} />
+          );
+          rerender(
+            <FamilyTreeWithProvider data={sampleData} nodeComponent={TestNode} />
+          );
+        });
+      }).not.toThrow();
+
+      // Wait for effects to settle
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
     });
   });
 });
