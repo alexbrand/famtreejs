@@ -318,7 +318,7 @@ const skywalkerFamily: FamilyTreeData<{ name: string }> = {
     { id: 'ben', data: { name: 'Ben Solo' } },
   ],
   partnerships: [
-    { id: 'u1', partnerIds: ['shmi'], childIds: ['anakin'] },
+    { id: 'u1', partnerIds: ['shmi', null], childIds: ['anakin'] },
     { id: 'u2', partnerIds: ['anakin', 'padme'], childIds: ['luke', 'leia'] },
     { id: 'u3', partnerIds: ['han', 'leia'], childIds: ['ben'] },
   ],
