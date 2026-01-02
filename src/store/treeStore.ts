@@ -49,9 +49,11 @@ export interface TreeActions {
   // Component callbacks (registered by FamilyTree component)
   _centerOnPersonCallback: ((personId: string) => void) | null;
   _fitToViewCallback: (() => void) | null;
+  _expandAllCallback: (() => void) | null;
   _registerCallbacks: (
     centerOnPerson: (personId: string) => void,
-    fitToView: () => void
+    fitToView: () => void,
+    expandAll: () => void
   ) => void;
   _unregisterCallbacks: () => void;
 
@@ -81,12 +83,13 @@ export const createTreeStore = (minZoom = 0.1, maxZoom = 3) =>
     // Component callbacks (initially null)
     _centerOnPersonCallback: null,
     _fitToViewCallback: null,
+    _expandAllCallback: null,
 
-    _registerCallbacks: (centerOnPerson, fitToView) =>
-      set({ _centerOnPersonCallback: centerOnPerson, _fitToViewCallback: fitToView }),
+    _registerCallbacks: (centerOnPerson, fitToView, expandAll) =>
+      set({ _centerOnPersonCallback: centerOnPerson, _fitToViewCallback: fitToView, _expandAllCallback: expandAll }),
 
     _unregisterCallbacks: () =>
-      set({ _centerOnPersonCallback: null, _fitToViewCallback: null }),
+      set({ _centerOnPersonCallback: null, _fitToViewCallback: null, _expandAllCallback: null }),
 
     setZoom: (zoom) =>
       set({ zoom: Math.min(maxZoom, Math.max(minZoom, zoom)) }),

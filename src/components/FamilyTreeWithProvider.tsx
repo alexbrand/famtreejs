@@ -20,7 +20,8 @@ function FamilyTreeBridge<T>({
     if (localRef.current) {
       storeApi.getState()._registerCallbacks(
         localRef.current.centerOnPerson,
-        localRef.current.fitToView
+        localRef.current.fitToView,
+        localRef.current.expandAll
       );
     }
     return () => {

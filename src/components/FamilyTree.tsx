@@ -293,6 +293,7 @@ function FamilyTreeInner<T>(
     collapseAll,
     toggleBranch,
     setRoot: (personId: string) => {
+      centerOnPerson(personId);
       onRootChange?.(personId);
     },
     getZoom: () => transform.scale,

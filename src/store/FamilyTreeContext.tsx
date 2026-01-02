@@ -100,7 +100,14 @@ export function useFamilyTreeActions() {
         console.warn('fitToView: FamilyTree component not mounted');
       }
     },
-    expandAll: () => state.expandAll([]),
+    expandAll: () => {
+      const callback = state._expandAllCallback;
+      if (callback) {
+        callback();
+      } else {
+        console.warn('expandAll: FamilyTree component not mounted');
+      }
+    },
     collapseAll: state.collapseAll,
     toggleBranch: state.toggleBranch,
     setRoot: state.setRootPersonId,

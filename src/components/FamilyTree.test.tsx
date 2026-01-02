@@ -98,10 +98,14 @@ describe('FamilyTree', () => {
     );
 
     // Try to zoom beyond limits
-    ref.current?.zoomTo(5);
+    act(() => {
+      ref.current?.zoomTo(5);
+    });
     expect(ref.current?.getZoom()).toBeLessThanOrEqual(2);
 
-    ref.current?.zoomTo(0.1);
+    act(() => {
+      ref.current?.zoomTo(0.1);
+    });
     expect(ref.current?.getZoom()).toBeGreaterThanOrEqual(0.5);
   });
 
