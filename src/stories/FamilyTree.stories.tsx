@@ -306,27 +306,35 @@ export const HouseStark: Story = {
   },
 };
 
-// Star Wars - Skywalker Family
-const skywalkerFamily: FamilyTreeData<{ name: string }> = {
+// The Tudors - Henry VIII and his multiple marriages
+// Henry VIII had children from 3 of his 6 wives
+const tudorFamily: FamilyTreeData<{ name: string }> = {
   people: [
-    { id: 'shmi', data: { name: 'Shmi Skywalker' } },
-    { id: 'anakin', data: { name: 'Anakin Skywalker' } },
-    { id: 'padme', data: { name: 'Padmé Amidala' } },
-    { id: 'luke', data: { name: 'Luke Skywalker' } },
-    { id: 'leia', data: { name: 'Leia Organa' } },
-    { id: 'han', data: { name: 'Han Solo' } },
-    { id: 'ben', data: { name: 'Ben Solo' } },
+    // Parents of Henry VIII
+    { id: 'henry7', data: { name: 'Henry VII' } },
+    { id: 'elizabeth_york', data: { name: 'Elizabeth of York' } },
+    // Henry VIII and his wives
+    { id: 'henry8', data: { name: 'Henry VIII' } },
+    { id: 'catherine_aragon', data: { name: 'Catherine of Aragon' } },
+    { id: 'anne_boleyn', data: { name: 'Anne Boleyn' } },
+    { id: 'jane_seymour', data: { name: 'Jane Seymour' } },
+    // Children from different marriages
+    { id: 'mary1', data: { name: 'Mary I' } },
+    { id: 'elizabeth1', data: { name: 'Elizabeth I' } },
+    { id: 'edward6', data: { name: 'Edward VI' } },
   ],
   partnerships: [
-    { id: 'u1', partnerIds: ['shmi', null], childIds: ['anakin'] },
-    { id: 'u2', partnerIds: ['anakin', 'padme'], childIds: ['luke', 'leia'] },
-    { id: 'u3', partnerIds: ['han', 'leia'], childIds: ['ben'] },
+    { id: 'u1', partnerIds: ['henry7', 'elizabeth_york'], childIds: ['henry8'] },
+    // Henry VIII's three marriages that produced heirs
+    { id: 'u2', partnerIds: ['henry8', 'catherine_aragon'], childIds: ['mary1'] },
+    { id: 'u3', partnerIds: ['henry8', 'anne_boleyn'], childIds: ['elizabeth1'] },
+    { id: 'u4', partnerIds: ['henry8', 'jane_seymour'], childIds: ['edward6'] },
   ],
 };
 
-export const Skywalkers: Story = {
+export const TheTudors: Story = {
   args: {
-    data: skywalkerFamily,
+    data: tudorFamily,
     nodeComponent: BasicPersonCard,
     orientation: 'top-down',
     theme: 'light',
