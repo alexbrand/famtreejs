@@ -9,7 +9,8 @@
       "Skill(dev-browser)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: complete Phase 1 - Foundation\n\n- Initialize npm package with TypeScript and ESM-only build\n- Configure Vite for library mode\n- Set up ESLint, Prettier, and Vitest\n- Define TypeScript interfaces for data model\n- Implement data validation with strict error throwing\n- Create layout engine for partnership-centric positioning\n- Build FamilyTree component with SVG rendering\n- Add BasicPersonCard default component\n- Include dev app for visual testing\n\nAll 22 tests passing.\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git commit:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(cat:*)"
     ]
   }
 }

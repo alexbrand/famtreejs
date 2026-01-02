@@ -21,10 +21,9 @@ const DEFAULT_SPACING = {
   partners: 130,   // NODE_WIDTH + 10px gap (partners closer together)
 };
 
-// Default node size (for foreignObject)
+// Default node size
 const NODE_WIDTH = 120;
 const NODE_HEIGHT = 120; // Increased to accommodate DetailedPersonCard with photo+name+dates
-const NODE_PADDING = 4; // Padding inside foreignObject where card starts
 
 // Default zoom settings
 const DEFAULT_MIN_ZOOM = 0.1;
@@ -39,6 +38,7 @@ interface Transform {
 
 /**
  * FamilyTree component for rendering interactive family trees
+ * Uses HTML divs for nodes (cross-browser compatible) and SVG for connection lines
  */
 function FamilyTreeInner<T>(
   props: FamilyTreeProps<T>,
@@ -89,7 +89,6 @@ function FamilyTreeInner<T>(
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
   const isDragging = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
   const lastPinchDistance = useRef<number | null>(null);
@@ -503,6 +502,12 @@ function FamilyTreeInner<T>(
   const lineStroke = lineStyle?.stroke ?? 'var(--ft-line-color)';
   const lineStrokeWidth = lineStyle?.strokeWidth ?? 2;
 
+  // Transform string for both SVG and HTML layers
+  const transformStyle = `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`;
+
+  // Estimated card offset for line connections
+  const estimatedCardOffset = 25;
+
   return (
     <div
       ref={containerRef}
@@ -511,6 +516,7 @@ function FamilyTreeInner<T>(
         width: '100%',
         height: '100%',
         overflow: 'hidden',
+        position: 'relative',
         cursor: isDragging.current ? 'grabbing' : 'grab',
         touchAction: 'none',
         outline: 'none',
@@ -529,15 +535,19 @@ function FamilyTreeInner<T>(
       onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
     >
+      {/* SVG layer for connection lines only */}
       <svg
-        ref={svgRef}
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: '100%',
           height: '100%',
+          pointerEvents: 'none',
           overflow: 'visible',
         }}
       >
-        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
+        <g style={{ transform: transformStyle, transformOrigin: '0 0' }}>
           {/* Partnership lines */}
           <g className="ft-partnership-lines">
             {layout.partnershipConnections.map((conn) => {
@@ -547,7 +557,6 @@ function FamilyTreeInner<T>(
               const p2 = layout.nodes.find((n) => n.id === conn.partner2Id);
               if (!p1 || !p2) return null;
 
-              // Partnership lines connect at the center of the node bounding box
               return (
                 <motion.line
                   key={`partnership-${conn.partnershipId}`}
@@ -557,8 +566,8 @@ function FamilyTreeInner<T>(
                   transition={{ duration, ease: 'easeInOut' }}
                   stroke={lineStroke}
                   strokeWidth={lineStrokeWidth}
+                  style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                   onClick={(e) => handlePartnershipClick(e, conn.partnershipId)}
-                  style={{ cursor: 'pointer' }}
                 />
               );
             })}
@@ -572,7 +581,6 @@ function FamilyTreeInner<T>(
               );
               if (!partnership) return null;
 
-              // Child connection starts from partnership midpoint (center of node bounding box)
               const midX = partnership.midpoint.x;
               const midY = partnership.midpoint.y;
               const childX = conn.childPoint.x;
@@ -580,16 +588,10 @@ function FamilyTreeInner<T>(
               const dropX = conn.dropPoint.x;
               const dropY = conn.dropPoint.y;
 
-              // Calculate path based on orientation
               let path: string;
               const isHorizontal = orientation === 'left-right' || orientation === 'right-left';
 
-              // Cards are centered in the foreignObject, so lines should end near the card edge
-              // Estimate card height as ~50% of NODE_HEIGHT for centered positioning
-              const estimatedCardOffset = 25; // Approximate distance from center to card edge
-
               if (isHorizontal) {
-                // Horizontal layouts: drop line goes horizontal first, then vertical
                 const nodeOffset = orientation === 'left-right'
                   ? -estimatedCardOffset
                   : estimatedCardOffset;
@@ -600,7 +602,6 @@ function FamilyTreeInner<T>(
                   L ${childX + nodeOffset} ${childY}
                 `;
               } else {
-                // Vertical layouts: drop line goes vertical first, then horizontal
                 const nodeOffset = orientation === 'top-down'
                   ? -estimatedCardOffset
                   : estimatedCardOffset;
@@ -626,88 +627,104 @@ function FamilyTreeInner<T>(
               );
             })}
           </g>
-
-          {/* Nodes */}
-          <g className="ft-nodes" role="tree" aria-label="Family members">
-            {layout.nodes.map((node, index) => {
-              const person = data.people.find((p) => p.id === node.id);
-              if (!person) return null;
-
-              const isFocused = focusedId === node.id;
-              const isSelected = selectedId === node.id;
-              const isExpanded = expandedIds.has(node.id);
-
-              const nodeProps: NodeComponentProps<T> = {
-                id: node.id,
-                data: person.data,
-                isSelected,
-                isHovered: hoveredId === node.id,
-                isExpanded,
-                onToggleExpand: () => toggleBranch(node.id),
-              };
-
-              // Get label from data if it has a name property
-              const personData = person.data as { name?: string };
-              const ariaLabel = personData?.name || `Person ${node.id}`;
-
-              return (
-                <motion.g
-                  key={node.id}
-                  initial={false}
-                  animate={{ x: node.x - NODE_WIDTH / 2, y: node.y - NODE_HEIGHT / 2 }}
-                  transition={{ duration, ease: 'easeInOut' }}
-                  role="treeitem"
-                  aria-label={ariaLabel}
-                  aria-selected={isSelected}
-                  aria-expanded={isExpanded}
-                  aria-setsize={layout.nodes.length}
-                  aria-posinset={index + 1}
-                  tabIndex={isFocused ? 0 : -1}
-                  onFocus={() => handleNodeFocus(node.id)}
-                >
-                  {/* Focus ring */}
-                  {isFocused && (
-                    <rect
-                      x={-4}
-                      y={-4}
-                      width={NODE_WIDTH + 8}
-                      height={NODE_HEIGHT + 8}
-                      fill="none"
-                      stroke="var(--ft-node-selected-border)"
-                      strokeWidth={3}
-                      rx={12}
-                      style={{ pointerEvents: 'none' }}
-                    />
-                  )}
-                  <foreignObject
-                    x={0}
-                    y={0}
-                    width={NODE_WIDTH}
-                    height={NODE_HEIGHT}
-                    className="ft-node"
-                    onClick={(e) => handleNodeClick(e, node.id)}
-                    onMouseEnter={() => handleNodeHover(node.id)}
-                    onMouseLeave={() => handleNodeHover(null)}
-                    style={{ cursor: 'pointer', overflow: 'visible' }}
-                  >
-                    <div
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <NodeComponent {...nodeProps} />
-                    </div>
-                  </foreignObject>
-                </motion.g>
-              );
-            })}
-          </g>
         </g>
       </svg>
+
+      {/* HTML layer for nodes - renders on top of SVG lines */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          style={{
+            transform: transformStyle,
+            transformOrigin: '0 0',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+          role="tree"
+          aria-label="Family members"
+        >
+          {layout.nodes.map((node, index) => {
+            const person = data.people.find((p) => p.id === node.id);
+            if (!person) return null;
+
+            const isFocused = focusedId === node.id;
+            const isSelected = selectedId === node.id;
+            const isExpanded = expandedIds.has(node.id);
+
+            const nodeProps: NodeComponentProps<T> = {
+              id: node.id,
+              data: person.data,
+              isSelected,
+              isHovered: hoveredId === node.id,
+              isExpanded,
+              onToggleExpand: () => toggleBranch(node.id),
+            };
+
+            const personData = person.data as { name?: string };
+            const ariaLabel = personData?.name || `Person ${node.id}`;
+
+            // Calculate node position (center the node on the coordinates)
+            const nodeX = node.x - NODE_WIDTH / 2;
+            const nodeY = node.y - NODE_HEIGHT / 2;
+
+            return (
+              <motion.div
+                key={node.id}
+                initial={false}
+                animate={{ x: nodeX, y: nodeY }}
+                transition={{ duration, ease: 'easeInOut' }}
+                style={{
+                  position: 'absolute',
+                  width: NODE_WIDTH,
+                  height: NODE_HEIGHT,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'auto',
+                  cursor: 'pointer',
+                }}
+                role="treeitem"
+                aria-label={ariaLabel}
+                aria-selected={isSelected}
+                aria-expanded={isExpanded}
+                aria-setsize={layout.nodes.length}
+                aria-posinset={index + 1}
+                tabIndex={isFocused ? 0 : -1}
+                onClick={(e) => handleNodeClick(e, node.id)}
+                onMouseEnter={() => handleNodeHover(node.id)}
+                onMouseLeave={() => handleNodeHover(null)}
+                onFocus={() => handleNodeFocus(node.id)}
+              >
+                {/* Focus ring */}
+                {isFocused && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: -4,
+                      left: -4,
+                      right: -4,
+                      bottom: -4,
+                      border: '3px solid var(--ft-node-selected-border)',
+                      borderRadius: 12,
+                      pointerEvents: 'none',
+                    }}
+                  />
+                )}
+                <NodeComponent {...nodeProps} />
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

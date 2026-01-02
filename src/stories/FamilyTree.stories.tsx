@@ -196,6 +196,7 @@ export const WithDetailedCards: Story = {
     nodeComponent: DetailedPersonCard,
     orientation: 'top-down',
     theme: 'light',
+    disableAnimations: true,
   },
 };
 
