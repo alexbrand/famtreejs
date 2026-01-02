@@ -46,6 +46,15 @@ export interface TreeActions {
   // Visible nodes
   setVisibleNodeIds: (ids: string[]) => void;
 
+  // Component callbacks (registered by FamilyTree component)
+  _centerOnPersonCallback: ((personId: string) => void) | null;
+  _fitToViewCallback: (() => void) | null;
+  _registerCallbacks: (
+    centerOnPerson: (personId: string) => void,
+    fitToView: () => void
+  ) => void;
+  _unregisterCallbacks: () => void;
+
   // Reset
   reset: () => void;
 }
@@ -66,8 +75,18 @@ const initialState: TreeState = {
 };
 
 export const createTreeStore = (minZoom = 0.1, maxZoom = 3) =>
-  create<TreeStore>((set) => ({
+  create<TreeStore>((set, get) => ({
     ...initialState,
+
+    // Component callbacks (initially null)
+    _centerOnPersonCallback: null,
+    _fitToViewCallback: null,
+
+    _registerCallbacks: (centerOnPerson, fitToView) =>
+      set({ _centerOnPersonCallback: centerOnPerson, _fitToViewCallback: fitToView }),
+
+    _unregisterCallbacks: () =>
+      set({ _centerOnPersonCallback: null, _fitToViewCallback: null }),
 
     setZoom: (zoom) =>
       set({ zoom: Math.min(maxZoom, Math.max(minZoom, zoom)) }),

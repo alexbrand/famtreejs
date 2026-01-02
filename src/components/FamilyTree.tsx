@@ -294,7 +294,7 @@ function FamilyTreeInner<T>(
       onRootChange?.(personId);
     },
     getZoom: () => transform.scale,
-    getRoot: () => null,
+    getRoot: () => data.rootPersonId ?? null,
   }));
 
   // Initialize view centered on content, and re-fit when orientation changes

@@ -1,7 +1,43 @@
-import { forwardRef } from 'react';
+import { forwardRef, useRef, useEffect } from 'react';
 import { FamilyTree } from './FamilyTree';
-import { FamilyTreeProvider } from '../store/FamilyTreeContext';
+import { FamilyTreeProvider, useTreeStoreInternal } from '../store/FamilyTreeContext';
 import type { FamilyTreeProps, FamilyTreeHandle } from '../types';
+
+/**
+ * Bridge component that connects FamilyTree methods to the store
+ */
+function FamilyTreeBridge<T>({
+  innerRef,
+  ...props
+}: FamilyTreeProps<T> & { innerRef: React.ForwardedRef<FamilyTreeHandle> }) {
+  const localRef = useRef<FamilyTreeHandle>(null);
+  const store = useTreeStoreInternal();
+
+  // Register callbacks when component mounts
+  useEffect(() => {
+    if (localRef.current) {
+      store._registerCallbacks(
+        localRef.current.centerOnPerson,
+        localRef.current.fitToView
+      );
+    }
+    return () => {
+      store._unregisterCallbacks();
+    };
+  }, [store]);
+
+  // Forward the ref to both local and external
+  const setRefs = (handle: FamilyTreeHandle | null) => {
+    (localRef as React.MutableRefObject<FamilyTreeHandle | null>).current = handle;
+    if (typeof innerRef === 'function') {
+      innerRef(handle);
+    } else if (innerRef) {
+      (innerRef as React.MutableRefObject<FamilyTreeHandle | null>).current = handle;
+    }
+  };
+
+  return <FamilyTree ref={setRefs} {...props} />;
+}
 
 /**
  * FamilyTree component wrapped with provider for hook access
@@ -15,7 +51,7 @@ function FamilyTreeWithProviderInner<T>(
 
   return (
     <FamilyTreeProvider minZoom={minZoom} maxZoom={maxZoom}>
-      <FamilyTree ref={ref} minZoom={minZoom} maxZoom={maxZoom} {...rest} />
+      <FamilyTreeBridge innerRef={ref} minZoom={minZoom} maxZoom={maxZoom} {...rest} />
     </FamilyTreeProvider>
   );
 }

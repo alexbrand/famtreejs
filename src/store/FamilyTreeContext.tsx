@@ -87,13 +87,21 @@ export function useFamilyTreeActions() {
     zoomTo: state.setZoom,
     zoomIn: () => state.zoomIn(),
     zoomOut: () => state.zoomOut(),
-    centerOnPerson: () => {
-      // This needs access to layout data, will be connected in component
-      console.warn('centerOnPerson requires component context');
+    centerOnPerson: (personId: string) => {
+      const callback = state._centerOnPersonCallback;
+      if (callback) {
+        callback(personId);
+      } else {
+        console.warn('centerOnPerson: FamilyTree component not mounted');
+      }
     },
     fitToView: () => {
-      // This needs access to layout data, will be connected in component
-      console.warn('fitToView requires component context');
+      const callback = state._fitToViewCallback;
+      if (callback) {
+        callback();
+      } else {
+        console.warn('fitToView: FamilyTree component not mounted');
+      }
     },
     expandAll: () => state.expandAll([]),
     collapseAll: state.collapseAll,

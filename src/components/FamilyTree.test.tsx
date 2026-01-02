@@ -102,4 +102,95 @@ describe('FamilyTree', () => {
     ref.current?.zoomTo(0.1);
     expect(ref.current?.getZoom()).toBeGreaterThanOrEqual(0.5);
   });
+
+  describe('multi-marriage styling', () => {
+    const multiMarriageData: FamilyTreeData<{ name: string }> = {
+      people: [
+        { id: 'henry', data: { name: 'Henry' } },
+        { id: 'wife1', data: { name: 'Catherine' } },
+        { id: 'wife2', data: { name: 'Anne' } },
+        { id: 'wife3', data: { name: 'Jane' } },
+        { id: 'child1', data: { name: 'Mary' } },
+        { id: 'child2', data: { name: 'Elizabeth' } },
+        { id: 'child3', data: { name: 'Edward' } },
+      ],
+      partnerships: [
+        { id: 'u1', partnerIds: ['henry', 'wife1'], childIds: ['child1'] },
+        { id: 'u2', partnerIds: ['henry', 'wife2'], childIds: ['child2'] },
+        { id: 'u3', partnerIds: ['henry', 'wife3'], childIds: ['child3'] },
+      ],
+    };
+
+    it('renders partnership lines with different colors when multiple marriages exist', () => {
+      const { container } = render(
+        <FamilyTree data={multiMarriageData} nodeComponent={TestNode} />
+      );
+
+      // Find partnership lines
+      const partnershipLines = container.querySelectorAll('.ft-partnership-line');
+      expect(partnershipLines.length).toBe(3);
+
+      // Check that lines have different stroke colors (multi-marriage styling)
+      const colors = new Set<string>();
+      partnershipLines.forEach((line) => {
+        const stroke = line.getAttribute('stroke');
+        if (stroke) colors.add(stroke);
+      });
+
+      // Should have 3 different colors for 3 marriages
+      expect(colors.size).toBe(3);
+    });
+
+    it('renders child lines with matching colors to their partnership', () => {
+      const { container } = render(
+        <FamilyTree data={multiMarriageData} nodeComponent={TestNode} />
+      );
+
+      // Find child lines
+      const childLines = container.querySelectorAll('.ft-child-line');
+      expect(childLines.length).toBe(3);
+
+      // Check that child lines have colors (multi-marriage styling)
+      const colors = new Set<string>();
+      childLines.forEach((line) => {
+        const stroke = line.getAttribute('stroke');
+        if (stroke) colors.add(stroke);
+      });
+
+      // Should have 3 different colors for 3 child connections
+      expect(colors.size).toBe(3);
+    });
+
+    it('uses default line style when no multiple marriages exist', () => {
+      const { container } = render(
+        <FamilyTree data={sampleData} nodeComponent={TestNode} />
+      );
+
+      // Find partnership line
+      const partnershipLine = container.querySelector('.ft-partnership-line');
+      expect(partnershipLine).toBeInTheDocument();
+
+      // Should use CSS variable (default style), not a specific color
+      const stroke = partnershipLine?.getAttribute('stroke');
+      expect(stroke).toBe('var(--ft-line-color)');
+    });
+
+    it('applies dash patterns to differentiate marriages', () => {
+      const { container } = render(
+        <FamilyTree data={multiMarriageData} nodeComponent={TestNode} />
+      );
+
+      // Find partnership lines
+      const partnershipLines = container.querySelectorAll('.ft-partnership-line');
+
+      // Collect dash patterns (some may be empty/null for solid lines)
+      const dashes = new Set<string | null>();
+      partnershipLines.forEach((line) => {
+        dashes.add(line.getAttribute('stroke-dasharray'));
+      });
+
+      // Should have at least 2 different dash patterns (including solid)
+      expect(dashes.size).toBeGreaterThanOrEqual(2);
+    });
+  });
 });
