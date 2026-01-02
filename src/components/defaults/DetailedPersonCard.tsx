@@ -35,7 +35,7 @@ export function DetailedPersonCard({
           : isHovered
             ? '0 2px 8px var(--ft-node-shadow)'
             : '0 1px 3px var(--ft-node-shadow)',
-        transition: 'all 0.2s ease',
+        transition: 'background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
         textAlign: 'center',
         minWidth: '100px',
         color: 'var(--ft-node-text)',

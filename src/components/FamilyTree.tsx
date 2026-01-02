@@ -23,9 +23,8 @@ const DEFAULT_SPACING = {
 
 // Default node size (for foreignObject)
 const NODE_WIDTH = 120;
-const NODE_HEIGHT = 80;
+const NODE_HEIGHT = 120; // Increased to accommodate DetailedPersonCard with photo+name+dates
 const NODE_PADDING = 4; // Padding inside foreignObject where card starts
-const CARD_CENTER_OFFSET = 18; // Approximate distance from foreignObject edge to card's visual center
 
 // Default zoom settings
 const DEFAULT_MIN_ZOOM = 0.1;
@@ -548,31 +547,13 @@ function FamilyTreeInner<T>(
               const p2 = layout.nodes.find((n) => n.id === conn.partner2Id);
               if (!p1 || !p2) return null;
 
-              // Offset line position to align with card's visual center based on orientation
-              let x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
-              const edgeOffset = NODE_HEIGHT / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
-              const edgeOffsetH = NODE_WIDTH / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
-
-              if (orientation === 'top-down') {
-                y1 = p1.y - edgeOffset;
-                y2 = p2.y - edgeOffset;
-              } else if (orientation === 'bottom-up') {
-                y1 = p1.y + edgeOffset;
-                y2 = p2.y + edgeOffset;
-              } else if (orientation === 'left-right') {
-                x1 = p1.x - edgeOffsetH;
-                x2 = p2.x - edgeOffsetH;
-              } else if (orientation === 'right-left') {
-                x1 = p1.x + edgeOffsetH;
-                x2 = p2.x + edgeOffsetH;
-              }
-
+              // Partnership lines connect at the center of the node bounding box
               return (
                 <motion.line
                   key={`partnership-${conn.partnershipId}`}
                   className="ft-partnership-line"
                   initial={false}
-                  animate={{ x1, y1, x2, y2 }}
+                  animate={{ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }}
                   transition={{ duration, ease: 'easeInOut' }}
                   stroke={lineStroke}
                   strokeWidth={lineStrokeWidth}
@@ -591,22 +572,9 @@ function FamilyTreeInner<T>(
               );
               if (!partnership) return null;
 
-              // Adjust midpoint to match the offset partnership line
-              let midX = partnership.midpoint.x;
-              let midY = partnership.midpoint.y;
-              const edgeOffset = NODE_HEIGHT / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
-              const edgeOffsetH = NODE_WIDTH / 2 - NODE_PADDING - CARD_CENTER_OFFSET;
-
-              if (orientation === 'top-down') {
-                midY = midY - edgeOffset;
-              } else if (orientation === 'bottom-up') {
-                midY = midY + edgeOffset;
-              } else if (orientation === 'left-right') {
-                midX = midX - edgeOffsetH;
-              } else if (orientation === 'right-left') {
-                midX = midX + edgeOffsetH;
-              }
-
+              // Child connection starts from partnership midpoint (center of node bounding box)
+              const midX = partnership.midpoint.x;
+              const midY = partnership.midpoint.y;
               const childX = conn.childPoint.x;
               const childY = conn.childPoint.y;
               const dropX = conn.dropPoint.x;
@@ -616,12 +584,15 @@ function FamilyTreeInner<T>(
               let path: string;
               const isHorizontal = orientation === 'left-right' || orientation === 'right-left';
 
+              // Cards are centered in the foreignObject, so lines should end near the card edge
+              // Estimate card height as ~50% of NODE_HEIGHT for centered positioning
+              const estimatedCardOffset = 25; // Approximate distance from center to card edge
+
               if (isHorizontal) {
                 // Horizontal layouts: drop line goes horizontal first, then vertical
-                // Account for padding inside the node where the card starts
                 const nodeOffset = orientation === 'left-right'
-                  ? -NODE_WIDTH / 2 + NODE_PADDING
-                  : NODE_WIDTH / 2 - NODE_PADDING;
+                  ? -estimatedCardOffset
+                  : estimatedCardOffset;
                 path = `
                   M ${midX} ${midY}
                   L ${dropX} ${midY}
@@ -630,10 +601,9 @@ function FamilyTreeInner<T>(
                 `;
               } else {
                 // Vertical layouts: drop line goes vertical first, then horizontal
-                // Account for padding inside the node where the card starts
                 const nodeOffset = orientation === 'top-down'
-                  ? -NODE_HEIGHT / 2 + NODE_PADDING
-                  : NODE_HEIGHT / 2 - NODE_PADDING;
+                  ? -estimatedCardOffset
+                  : estimatedCardOffset;
                 path = `
                   M ${midX} ${midY}
                   L ${midX} ${dropY}
@@ -725,17 +695,8 @@ function FamilyTreeInner<T>(
                         width: '100%',
                         height: '100%',
                         display: 'flex',
-                        // Align card based on orientation so lines connect properly
-                        alignItems: orientation === 'top-down' ? 'flex-start'
-                          : orientation === 'bottom-up' ? 'flex-end'
-                          : 'center',
-                        justifyContent: orientation === 'left-right' ? 'flex-start'
-                          : orientation === 'right-left' ? 'flex-end'
-                          : 'center',
-                        paddingTop: orientation === 'top-down' ? NODE_PADDING : 0,
-                        paddingBottom: orientation === 'bottom-up' ? NODE_PADDING : 0,
-                        paddingLeft: orientation === 'left-right' ? NODE_PADDING : 0,
-                        paddingRight: orientation === 'right-left' ? NODE_PADDING : 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
                       <NodeComponent {...nodeProps} />
