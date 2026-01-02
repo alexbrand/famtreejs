@@ -2,6 +2,7 @@
 import storybook from "eslint-plugin-storybook";
 
 import js from '@eslint/js';
+import globals from 'globals';
 import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import react from 'eslint-plugin-react';
@@ -17,6 +18,10 @@ export default [js.configs.recommended, {
       ecmaFeatures: {
         jsx: true,
       },
+    },
+    globals: {
+      ...globals.browser,
+      React: 'readonly',
     },
   },
   plugins: {

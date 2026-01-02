@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, act } from '@testing-library/react';
 import { FamilyTree } from './FamilyTree';
 import { FamilyTreeWithProvider } from './FamilyTreeWithProvider';
-import type { FamilyTreeData, NodeComponentProps, Orientation } from '../types';
-import { useState } from 'react';
+import type { FamilyTreeData, NodeComponentProps, Orientation, FamilyTreeHandle } from '../types';
+import { useState, createRef } from 'react';
 
 // Simple test node component
 function TestNode({ data, isSelected, isHovered }: NodeComponentProps<{ name: string }>) {
@@ -86,7 +86,7 @@ describe('FamilyTree', () => {
   });
 
   it('respects minZoom and maxZoom props', () => {
-    const ref = { current: null as any };
+    const ref = createRef<FamilyTreeHandle>();
     render(
       <FamilyTree
         ref={ref}
@@ -198,10 +198,11 @@ describe('FamilyTree', () => {
 
   describe('stability and infinite loop prevention', () => {
     it('does not cause infinite re-renders on mount', async () => {
-      const renderCount = { current: 0 };
+      const renderCountRef = { current: 0 };
 
       function CountingNode({ data }: NodeComponentProps<{ name: string }>) {
-        renderCount.current++;
+        // eslint-disable-next-line react-hooks/immutability -- Intentional render counter for testing
+        renderCountRef.current++;
         return <div>{data.name}</div>;
       }
 
@@ -217,7 +218,7 @@ describe('FamilyTree', () => {
       // Each node renders once initially, plus potentially once more for state updates
       // But should NOT be hundreds of renders (which would indicate infinite loop)
       // With 3 nodes, we expect roughly 3-12 renders max (initial + potential re-renders)
-      expect(renderCount.current).toBeLessThan(30);
+      expect(renderCountRef.current).toBeLessThan(30);
     });
 
     it('handles rapid orientation changes without infinite loop', () => {
@@ -288,10 +289,11 @@ describe('FamilyTree', () => {
 
   describe('FamilyTreeWithProvider', () => {
     it('renders without causing infinite loops', async () => {
-      const renderCount = { current: 0 };
+      const renderCountRef = { current: 0 };
 
       function CountingNode({ data }: NodeComponentProps<{ name: string }>) {
-        renderCount.current++;
+        // eslint-disable-next-line react-hooks/immutability -- Intentional render counter for testing
+        renderCountRef.current++;
         return <div>{data.name}</div>;
       }
 
@@ -308,7 +310,7 @@ describe('FamilyTree', () => {
       });
 
       // Should have reasonable render count (not hundreds from infinite loop)
-      expect(renderCount.current).toBeLessThan(30);
+      expect(renderCountRef.current).toBeLessThan(30);
     });
 
     it('handles multiple re-renders without infinite loop', async () => {

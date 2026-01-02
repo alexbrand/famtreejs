@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { FamilyTreeWithProvider as FamilyTree } from '../components/FamilyTreeWithProvider';
 import { BasicPersonCard } from '../components/defaults/BasicPersonCard';
 import { DetailedPersonCard } from '../components/defaults/DetailedPersonCard';

@@ -34,6 +34,7 @@ function FamilyTreeBridge<T>({
     if (typeof innerRef === 'function') {
       innerRef(handle);
     } else if (innerRef) {
+      // eslint-disable-next-line react-hooks/immutability -- This is the standard pattern for ref forwarding
       (innerRef as React.MutableRefObject<FamilyTreeHandle | null>).current = handle;
     }
   };

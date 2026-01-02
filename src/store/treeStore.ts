@@ -75,7 +75,7 @@ const initialState: TreeState = {
 };
 
 export const createTreeStore = (minZoom = 0.1, maxZoom = 3) =>
-  create<TreeStore>((set, get) => ({
+  create<TreeStore>((set) => ({
     ...initialState,
 
     // Component callbacks (initially null)

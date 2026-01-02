@@ -104,10 +104,10 @@ function FamilyTreeInner<T>(
     y: 0,
     scale: initialZoom,
   });
+  const [isDragging, setIsDragging] = useState(false);
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
   const lastPinchDistance = useRef<number | null>(null);
   const hasInitializedView = useRef(false);
@@ -340,13 +340,13 @@ function FamilyTreeInner<T>(
   // Mouse event handlers for pan
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // Only left click
-    isDragging.current = true;
+    setIsDragging(true);
     lastPointer.current = { x: e.clientX, y: e.clientY };
     e.preventDefault();
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging.current) return;
+    if (!isDragging) return;
 
     const dx = e.clientX - lastPointer.current.x;
     const dy = e.clientY - lastPointer.current.y;
@@ -357,14 +357,14 @@ function FamilyTreeInner<T>(
       x: prev.x + dx,
       y: prev.y + dy,
     }));
-  }, []);
+  }, [isDragging]);
 
   const handleMouseUp = useCallback(() => {
-    isDragging.current = false;
+    setIsDragging(false);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    isDragging.current = false;
+    setIsDragging(false);
   }, []);
 
   // Wheel event for zoom
@@ -399,7 +399,7 @@ function FamilyTreeInner<T>(
   // Touch event handlers for pan and pinch-zoom
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 1) {
-      isDragging.current = true;
+      setIsDragging(true);
       lastPointer.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
       // Pinch zoom start
@@ -411,7 +411,7 @@ function FamilyTreeInner<T>(
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (e.touches.length === 1 && isDragging.current) {
+      if (e.touches.length === 1 && isDragging) {
         const dx = e.touches[0].clientX - lastPointer.current.x;
         const dy = e.touches[0].clientY - lastPointer.current.y;
         lastPointer.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -452,11 +452,11 @@ function FamilyTreeInner<T>(
         }
       }
     },
-    [transform, clampZoom, onZoomChange]
+    [isDragging, transform, clampZoom, onZoomChange]
   );
 
   const handleTouchEnd = useCallback(() => {
-    isDragging.current = false;
+    setIsDragging(false);
     lastPinchDistance.current = null;
   }, []);
 
@@ -609,7 +609,7 @@ function FamilyTreeInner<T>(
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
-        cursor: isDragging.current ? 'grabbing' : 'grab',
+        cursor: isDragging ? 'grabbing' : 'grab',
         touchAction: 'none',
         outline: 'none',
         ...style,

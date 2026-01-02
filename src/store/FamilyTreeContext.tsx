@@ -1,6 +1,6 @@
-import { createContext, useContext, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
-import { createTreeStore, type TreeStore, type TreeState, type TreeActions } from './treeStore';
+import { createTreeStore } from './treeStore';
 
 // Context for the store
 const FamilyTreeContext = createContext<ReturnType<typeof createTreeStore> | null>(null);
@@ -19,14 +19,11 @@ export function FamilyTreeProvider({
   minZoom = 0.1,
   maxZoom = 3,
 }: FamilyTreeProviderProps) {
-  const storeRef = useRef<ReturnType<typeof createTreeStore> | null>(null);
-
-  if (!storeRef.current) {
-    storeRef.current = createTreeStore(minZoom, maxZoom);
-  }
+  // Use useState with lazy initializer to create store once per provider instance
+  const [store] = useState(() => createTreeStore(minZoom, maxZoom));
 
   return (
-    <FamilyTreeContext.Provider value={storeRef.current}>
+    <FamilyTreeContext.Provider value={store}>
       {children}
     </FamilyTreeContext.Provider>
   );
