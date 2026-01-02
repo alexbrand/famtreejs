@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, act } from '@testing-library/react';
 import { FamilyTree } from './FamilyTree';
-import type { FamilyTreeData, NodeComponentProps } from '../types';
+import type { FamilyTreeData, NodeComponentProps, Orientation } from '../types';
+import { useState } from 'react';
 
 // Simple test node component
 function TestNode({ data, isSelected, isHovered }: NodeComponentProps<{ name: string }>) {
@@ -191,6 +192,96 @@ describe('FamilyTree', () => {
 
       // Should have at least 2 different dash patterns (including solid)
       expect(dashes.size).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('stability and infinite loop prevention', () => {
+    it('does not cause infinite re-renders on mount', async () => {
+      const renderCount = { current: 0 };
+
+      function CountingNode({ data }: NodeComponentProps<{ name: string }>) {
+        renderCount.current++;
+        return <div>{data.name}</div>;
+      }
+
+      render(
+        <FamilyTree data={sampleData} nodeComponent={CountingNode} />
+      );
+
+      // Wait a tick for any async effects to settle
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      // Each node renders once initially, plus potentially once more for state updates
+      // But should NOT be hundreds of renders (which would indicate infinite loop)
+      // With 3 nodes, we expect roughly 3-12 renders max (initial + potential re-renders)
+      expect(renderCount.current).toBeLessThan(30);
+    });
+
+    it('handles rapid orientation changes without infinite loop', () => {
+      const orientations: Orientation[] = ['top-down', 'left-right', 'bottom-up', 'right-left'];
+
+      function OrientationChanger() {
+        const [orientation, setOrientation] = useState<Orientation>('top-down');
+        return (
+          <>
+            <FamilyTree
+              data={sampleData}
+              nodeComponent={TestNode}
+              orientation={orientation}
+            />
+            <button
+              data-testid="change-orientation"
+              onClick={() => {
+                const currentIndex = orientations.indexOf(orientation);
+                setOrientation(orientations[(currentIndex + 1) % orientations.length]);
+              }}
+            />
+          </>
+        );
+      }
+
+      const { getByTestId } = render(<OrientationChanger />);
+      const button = getByTestId('change-orientation');
+
+      // Rapidly change orientation multiple times
+      // This should NOT throw "Maximum update depth exceeded"
+      expect(() => {
+        act(() => {
+          fireEvent.click(button);
+          fireEvent.click(button);
+          fireEvent.click(button);
+          fireEvent.click(button);
+        });
+      }).not.toThrow();
+    });
+
+    it('does not re-run fitToView when bounds change from same data', () => {
+      const onZoomChange = vi.fn();
+
+      const { rerender } = render(
+        <FamilyTree
+          data={sampleData}
+          nodeComponent={TestNode}
+          onZoomChange={onZoomChange}
+        />
+      );
+
+      // Clear initial calls
+      onZoomChange.mockClear();
+
+      // Re-render with same data - should not trigger fitToView again
+      rerender(
+        <FamilyTree
+          data={sampleData}
+          nodeComponent={TestNode}
+          onZoomChange={onZoomChange}
+        />
+      );
+
+      // onZoomChange should not be called on re-render with same data
+      expect(onZoomChange).not.toHaveBeenCalled();
     });
   });
 });

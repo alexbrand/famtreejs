@@ -110,6 +110,8 @@ function FamilyTreeInner<T>(
   const isDragging = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
   const lastPinchDistance = useRef<number | null>(null);
+  const hasInitializedView = useRef(false);
+  const lastOrientation = useRef(orientation);
 
   // Validate data on render
   validateFamilyTreeData(data);
@@ -299,9 +301,41 @@ function FamilyTreeInner<T>(
 
   // Initialize view centered on content, and re-fit when orientation changes
   useEffect(() => {
-    fitToView();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orientation]);
+    // Only run fitToView on initial mount or when orientation actually changes
+    const orientationChanged = lastOrientation.current !== orientation;
+
+    if (!hasInitializedView.current || orientationChanged) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      const rafId = requestAnimationFrame(() => {
+        if (containerRef.current) {
+          // Inline the fitToView logic to avoid dependency on the callback
+          const container = containerRef.current;
+          const rect = container.getBoundingClientRect();
+
+          if (rect.width > 0 && rect.height > 0) {
+            const scaleX = rect.width / bounds.width;
+            const scaleY = rect.height / bounds.height;
+            const newScale = Math.min(maxZoom, Math.max(minZoom, Math.min(scaleX, scaleY) * 0.9));
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            setTransform({
+              x: centerX - bounds.centerX * newScale,
+              y: centerY - bounds.centerY * newScale,
+              scale: newScale,
+            });
+            onZoomChange?.(newScale);
+
+            hasInitializedView.current = true;
+            lastOrientation.current = orientation;
+          }
+        }
+      });
+
+      return () => cancelAnimationFrame(rafId);
+    }
+  }, [orientation, bounds, minZoom, maxZoom, onZoomChange]);
 
   // Mouse event handlers for pan
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
