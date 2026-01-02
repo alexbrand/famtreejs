@@ -14,6 +14,24 @@ import { calculateLayout } from '../layout/engine';
 import type { LayoutResult } from '../layout/engine';
 import '../styles/theme.css';
 
+// Colors for distinguishing multiple marriages (colorblind-friendly palette)
+const MULTI_MARRIAGE_COLORS = [
+  '#2563eb', // blue
+  '#dc2626', // red
+  '#16a34a', // green
+  '#9333ea', // purple
+  '#ea580c', // orange
+];
+
+// Dash patterns for additional distinction
+const MULTI_MARRIAGE_DASHES = [
+  '',        // solid
+  '8,4',     // dashed
+  '4,4',     // short dash
+  '12,4,4,4', // dash-dot
+  '2,2',     // dotted
+];
+
 // Default spacing values (must be >= NODE_WIDTH to prevent overlap)
 const DEFAULT_SPACING = {
   generation: 150,
@@ -100,6 +118,46 @@ function FamilyTreeInner<T>(
   const layout: LayoutResult = useMemo(() => {
     return calculateLayout(data, { spacing, orientation });
   }, [data, spacing, orientation]);
+
+  // Compute multi-marriage styling: detect people with multiple partnerships
+  // and assign distinct colors/styles to each partnership
+  const multiMarriageStyles = useMemo(() => {
+    // Build map: person ID -> list of partnership IDs they're in
+    const personToPartnerships = new Map<string, string[]>();
+    for (const partnership of data.partnerships) {
+      for (const partnerId of partnership.partnerIds) {
+        if (partnerId) {
+          const existing = personToPartnerships.get(partnerId) || [];
+          existing.push(partnership.id);
+          personToPartnerships.set(partnerId, existing);
+        }
+      }
+    }
+
+    // Find partnerships that need styling (where at least one partner has multiple marriages)
+    const partnershipStyles = new Map<string, { color: string; dash: string; index: number }>();
+
+    for (const [, partnershipIds] of personToPartnerships) {
+      if (partnershipIds.length > 1) {
+        // This person has multiple marriages - style each one
+        partnershipIds.forEach((partnershipId, index) => {
+          // Only set style if not already set (first person with multiple marriages wins)
+          if (!partnershipStyles.has(partnershipId)) {
+            partnershipStyles.set(partnershipId, {
+              color: MULTI_MARRIAGE_COLORS[index % MULTI_MARRIAGE_COLORS.length],
+              dash: MULTI_MARRIAGE_DASHES[index % MULTI_MARRIAGE_DASHES.length],
+              index: index + 1, // 1-based for display
+            });
+          }
+        });
+      }
+    }
+
+    return {
+      partnershipStyles,
+      hasMultipleMarriages: partnershipStyles.size > 0,
+    };
+  }, [data.partnerships]);
 
   // Calculate content bounds
   const bounds = useMemo(() => {
@@ -557,6 +615,11 @@ function FamilyTreeInner<T>(
               const p2 = layout.nodes.find((n) => n.id === conn.partner2Id);
               if (!p1 || !p2) return null;
 
+              // Check if this partnership needs multi-marriage styling
+              const multiStyle = multiMarriageStyles.partnershipStyles.get(conn.partnershipId);
+              const stroke = multiStyle ? multiStyle.color : lineStroke;
+              const strokeDash = multiStyle ? multiStyle.dash : undefined;
+
               return (
                 <motion.line
                   key={`partnership-${conn.partnershipId}`}
@@ -564,8 +627,9 @@ function FamilyTreeInner<T>(
                   initial={false}
                   animate={{ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }}
                   transition={{ duration, ease: 'easeInOut' }}
-                  stroke={lineStroke}
-                  strokeWidth={lineStrokeWidth}
+                  stroke={stroke}
+                  strokeWidth={multiStyle ? 3 : lineStrokeWidth}
+                  strokeDasharray={strokeDash}
                   style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                   onClick={(e) => handlePartnershipClick(e, conn.partnershipId)}
                 />
@@ -587,6 +651,11 @@ function FamilyTreeInner<T>(
               const childY = conn.childPoint.y;
               const dropX = conn.dropPoint.x;
               const dropY = conn.dropPoint.y;
+
+              // Check if this partnership needs multi-marriage styling
+              const multiStyle = multiMarriageStyles.partnershipStyles.get(conn.partnershipId);
+              const stroke = multiStyle ? multiStyle.color : lineStroke;
+              const strokeDash = multiStyle ? multiStyle.dash : undefined;
 
               let path: string;
               const isHorizontal = orientation === 'left-right' || orientation === 'right-left';
@@ -621,8 +690,9 @@ function FamilyTreeInner<T>(
                   animate={{ d: path }}
                   transition={{ duration, ease: 'easeInOut' }}
                   fill="none"
-                  stroke={lineStroke}
-                  strokeWidth={lineStrokeWidth}
+                  stroke={stroke}
+                  strokeWidth={multiStyle ? 3 : lineStrokeWidth}
+                  strokeDasharray={strokeDash}
                 />
               );
             })}
