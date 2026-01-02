@@ -236,3 +236,99 @@ export const CustomLineStyle: Story = {
     },
   },
 };
+
+// ===== TV/Movie Inspired Examples =====
+
+// The Simpsons Family
+const simpsonsFamily: FamilyTreeData<{ name: string }> = {
+  people: [
+    { id: 'abe', data: { name: 'Abe Simpson' } },
+    { id: 'mona', data: { name: 'Mona Simpson' } },
+    { id: 'clancy', data: { name: 'Clancy Bouvier' } },
+    { id: 'jackie', data: { name: 'Jackie Bouvier' } },
+    { id: 'homer', data: { name: 'Homer Simpson' } },
+    { id: 'marge', data: { name: 'Marge Simpson' } },
+    { id: 'patty', data: { name: 'Patty Bouvier' } },
+    { id: 'selma', data: { name: 'Selma Bouvier' } },
+    { id: 'bart', data: { name: 'Bart Simpson' } },
+    { id: 'lisa', data: { name: 'Lisa Simpson' } },
+    { id: 'maggie', data: { name: 'Maggie Simpson' } },
+  ],
+  partnerships: [
+    { id: 'u1', partnerIds: ['abe', 'mona'], childIds: ['homer'] },
+    { id: 'u2', partnerIds: ['clancy', 'jackie'], childIds: ['marge', 'patty', 'selma'] },
+    { id: 'u3', partnerIds: ['homer', 'marge'], childIds: ['bart', 'lisa', 'maggie'] },
+  ],
+};
+
+export const TheSimpsons: Story = {
+  args: {
+    data: simpsonsFamily,
+    nodeComponent: BasicPersonCard,
+    orientation: 'top-down',
+    theme: 'light',
+  },
+};
+
+// Game of Thrones - House Stark
+const starkFamily: FamilyTreeData<{ name: string }> = {
+  people: [
+    { id: 'rickard', data: { name: 'Rickard Stark' } },
+    { id: 'lyarra', data: { name: 'Lyarra Stark' } },
+    { id: 'ned', data: { name: 'Eddard Stark' } },
+    { id: 'catelyn', data: { name: 'Catelyn Tully' } },
+    { id: 'lyanna', data: { name: 'Lyanna Stark' } },
+    { id: 'rhaegar', data: { name: 'Rhaegar Targaryen' } },
+    { id: 'benjen', data: { name: 'Benjen Stark' } },
+    { id: 'robb', data: { name: 'Robb Stark' } },
+    { id: 'sansa', data: { name: 'Sansa Stark' } },
+    { id: 'arya', data: { name: 'Arya Stark' } },
+    { id: 'bran', data: { name: 'Bran Stark' } },
+    { id: 'rickon', data: { name: 'Rickon Stark' } },
+    { id: 'jon', data: { name: 'Jon Snow' } },
+  ],
+  partnerships: [
+    { id: 'u1', partnerIds: ['rickard', 'lyarra'], childIds: ['ned', 'lyanna', 'benjen'] },
+    { id: 'u2', partnerIds: ['ned', 'catelyn'], childIds: ['robb', 'sansa', 'arya', 'bran', 'rickon'] },
+    { id: 'u3', partnerIds: ['lyanna', 'rhaegar'], childIds: ['jon'] },
+  ],
+};
+
+export const HouseStark: Story = {
+  args: {
+    data: starkFamily,
+    nodeComponent: BasicPersonCard,
+    orientation: 'top-down',
+    theme: 'dark',
+  },
+  parameters: {
+    backgrounds: { default: 'dark' },
+  },
+};
+
+// Star Wars - Skywalker Family
+const skywalkerFamily: FamilyTreeData<{ name: string }> = {
+  people: [
+    { id: 'shmi', data: { name: 'Shmi Skywalker' } },
+    { id: 'anakin', data: { name: 'Anakin Skywalker' } },
+    { id: 'padme', data: { name: 'Padmé Amidala' } },
+    { id: 'luke', data: { name: 'Luke Skywalker' } },
+    { id: 'leia', data: { name: 'Leia Organa' } },
+    { id: 'han', data: { name: 'Han Solo' } },
+    { id: 'ben', data: { name: 'Ben Solo' } },
+  ],
+  partnerships: [
+    { id: 'u1', partnerIds: ['shmi'], childIds: ['anakin'] },
+    { id: 'u2', partnerIds: ['anakin', 'padme'], childIds: ['luke', 'leia'] },
+    { id: 'u3', partnerIds: ['han', 'leia'], childIds: ['ben'] },
+  ],
+};
+
+export const Skywalkers: Story = {
+  args: {
+    data: skywalkerFamily,
+    nodeComponent: BasicPersonCard,
+    orientation: 'top-down',
+    theme: 'light',
+  },
+};
