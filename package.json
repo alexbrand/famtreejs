@@ -1,5 +1,5 @@
 {
-  "name": "@yourorg/family-tree",
+  "name": "@alexbrand/famtreejs",
   "version": "1.0.0",
   "description": "React library for rendering interactive family trees with partnership-centric data model",
   "type": "module",
@@ -11,14 +11,14 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/index.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build && tsc --emitDeclarationOnly --outDir dist",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
@@ -38,11 +38,11 @@
     "visualization",
     "d3"
   ],
-  "author": "",
+  "author": "Alexander Brand",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/alexbrand/famtreejs"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.3",
