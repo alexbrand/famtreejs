@@ -25,7 +25,9 @@
     "lint": "eslint src --ext .ts,.tsx",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "release": "standard-version",
+    "release:first": "standard-version --first-release"
   },
   "peerDependencies": {
     "react": "^18.0.0",
@@ -72,6 +74,7 @@
     "prettier": "^3.7.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "standard-version": "^9.5.0",
     "storybook": "^10.1.11",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
