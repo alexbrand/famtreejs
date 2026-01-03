@@ -1,4 +1,4 @@
-// @alexbrand/famtreejs
+// @alexbrand09/famtreejs
 // React library for rendering interactive family trees
 
 // Main component (with provider for hook access)
