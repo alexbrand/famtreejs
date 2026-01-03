@@ -9,6 +9,7 @@ storybook-static
 
 # TypeScript build artifacts (outside dist)
 *.d.ts
+!src/types/*.d.ts
 *.d.ts.map
 *.js.map
 /dev/*.js
