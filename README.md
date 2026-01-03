@@ -1,4 +1,7 @@
-# @yourorg/family-tree
+# @alexbrand/famtreejs
+
+[![npm version](https://img.shields.io/npm/v/@alexbrand/famtreejs.svg)](https://www.npmjs.com/package/@alexbrand/famtreejs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A React library for rendering interactive family trees with a partnership-centric data model. Unlike traditional family tree libraries where children belong to a single parent, this library treats partnerships (marriages, unions) as first-class entities, with children descending from partnerships rather than individuals.
 
@@ -15,14 +18,15 @@ A React library for rendering interactive family trees with a partnership-centri
 ## Installation
 
 ```bash
-npm install @yourorg/family-tree
+npm install @alexbrand/famtreejs
 ```
 
 ## Quick Start
 
 ```tsx
-import { FamilyTree, BasicPersonCard } from '@yourorg/family-tree';
-import type { FamilyTreeData } from '@yourorg/family-tree';
+import { FamilyTree, BasicPersonCard } from '@alexbrand/famtreejs';
+import '@alexbrand/famtreejs/styles.css';
+import type { FamilyTreeData } from '@alexbrand/famtreejs';
 
 const data: FamilyTreeData<{ name: string }> = {
   people: [
@@ -105,7 +109,7 @@ interface FamilyTreeData<T = unknown> {
 Create your own node component by implementing `NodeComponentProps`:
 
 ```tsx
-import type { NodeComponentProps } from '@yourorg/family-tree';
+import type { NodeComponentProps } from '@alexbrand/famtreejs';
 
 interface MyPersonData {
   name: string;
@@ -138,7 +142,7 @@ function MyPersonCard({ data, isSelected, isHovered, isExpanded, onToggleExpand 
 Simple card showing just the name:
 
 ```tsx
-import { BasicPersonCard } from '@yourorg/family-tree';
+import { BasicPersonCard } from '@alexbrand/famtreejs';
 ```
 
 ### DetailedPersonCard
@@ -146,7 +150,7 @@ import { BasicPersonCard } from '@yourorg/family-tree';
 Card with photo, name, and dates:
 
 ```tsx
-import { DetailedPersonCard } from '@yourorg/family-tree';
+import { DetailedPersonCard } from '@alexbrand/famtreejs';
 
 // Data should include: name, birthDate?, deathDate?, photoUrl?
 ```
@@ -157,8 +161,8 @@ Access imperative methods via ref:
 
 ```tsx
 import { useRef } from 'react';
-import { FamilyTree } from '@yourorg/family-tree';
-import type { FamilyTreeHandle } from '@yourorg/family-tree';
+import { FamilyTree } from '@alexbrand/famtreejs';
+import type { FamilyTreeHandle } from '@alexbrand/famtreejs';
 
 function App() {
   const treeRef = useRef<FamilyTreeHandle>(null);
@@ -190,7 +194,7 @@ function App() {
 Use hooks inside the FamilyTree component tree:
 
 ```tsx
-import { useFamilyTreeState, useFamilyTreeActions } from '@yourorg/family-tree';
+import { useFamilyTreeState, useFamilyTreeActions } from '@alexbrand/famtreejs';
 
 function MyControls() {
   const { zoomLevel, selectedPersonId } = useFamilyTreeState();
