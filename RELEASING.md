@@ -4,10 +4,29 @@ This project uses [standard-version](https://github.com/conventional-changelog/s
 
 ## Prerequisites
 
-1. **NPM_TOKEN secret** must be configured in GitHub repo settings:
-   - Go to [npmjs.com](https://npmjs.com) → Access Tokens → Generate New Token (Automation)
-   - GitHub repo → Settings → Secrets and variables → Actions → New repository secret
-   - Name: `NPM_TOKEN`, Value: your npm token
+This project uses [npm trusted publishing](https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions) (OIDC) instead of access tokens. This is more secure because:
+- No secrets to manage or rotate
+- Publishing is cryptographically linked to this repository
+- Packages show a verified "Published from GitHub Actions" badge on npm
+
+### One-time setup
+
+1. **Publish the package manually first** (required to create the package on npm):
+   ```bash
+   npm login
+   npm publish --access public
+   ```
+
+2. **Link the package to GitHub Actions** on npmjs.com:
+   - Go to [npmjs.com](https://npmjs.com) → Your package → Settings → Publishing access
+   - Under "Require two-factor authentication or an automation or granular access token"
+   - Add a new trusted publisher with:
+     - **Environment**: `release` (or leave empty for any environment)
+     - **Repository owner**: `alexbrand`
+     - **Repository name**: `famtreejs`
+     - **Workflow filename**: `release.yml`
+
+After this setup, GitHub Actions can publish without any tokens.
 
 ## Commit Message Format
 
@@ -96,9 +115,16 @@ When you push a version tag (e.g., `v0.2.0`), GitHub Actions will:
 
 ### "npm publish" fails with 403
 
-- Check that `NPM_TOKEN` is set correctly in GitHub secrets
-- Ensure the token has publish permissions
+- Verify trusted publishing is configured on npmjs.com (see Prerequisites)
+- Check the workflow filename matches exactly: `release.yml`
+- Ensure the repository owner and name match exactly
 - For scoped packages, ensure `--access public` is used (already configured)
+
+### "No matching signature" or OIDC errors
+
+- The `id-token: write` permission must be set in the workflow
+- The `--provenance` flag must be passed to npm publish
+- GitHub Actions must be running on a public repository (or GitHub Enterprise with OIDC configured)
 
 ### Tag already exists
 
