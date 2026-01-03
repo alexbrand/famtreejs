@@ -37,8 +37,7 @@
     "react",
     "family-tree",
     "genealogy",
-    "visualization",
-    "d3"
+    "visualization"
   ],
   "author": "Alexander Brand",
   "license": "MIT",
@@ -56,7 +55,6 @@
     "@storybook/react-vite": "^10.1.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
-    "@types/d3": "^7.4.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.51.0",
@@ -81,7 +79,6 @@
     "vitest": "^4.0.16"
   },
   "dependencies": {
-    "d3": "^7.9.0",
     "framer-motion": "^12.23.26",
     "zustand": "^5.0.9"
   }

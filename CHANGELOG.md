@@ -24,6 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Technical Details
 
-- Built with React 18+, TypeScript, Zustand, D3, and Framer Motion
+- Built with React 18+, TypeScript, Zustand, and Framer Motion
 - ESM-only package
 - Vite-based build system
