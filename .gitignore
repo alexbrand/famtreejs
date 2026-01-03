@@ -13,3 +13,4 @@ storybook-static
 *.js.map
 /dev/*.js
 /vite.config.js
+.claude/settings.local.json
