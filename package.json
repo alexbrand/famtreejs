@@ -1,6 +1,6 @@
 {
   "name": "@alexbrand09/famtreejs",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "React library for rendering interactive family trees with partnership-centric data model",
   "type": "module",
   "main": "./dist/index.js",
